@@ -1,0 +1,9 @@
+las 3 soluciones hacen parte de una poblacion, la cantidad de soluciones es muy grande.
+
+unos son fuertes y otros más debiles, se puede cuantificar su importancio, todo esto en su adaptabilidad.
+a traves del tiempo se quiere que la gran parte de ellos se adapten el medio donde están, que sobrevivan, eso se logra en un proceso de evolución.
+
+codificacion de las soluciones, ej, en el problema de la mochila, una combinacion de 1 y 0, 1 si el objeto esta en la mochila, 0 si no esta.
+
+ahora no se llaman soluciones, se llaman individuos, y la poblacion es el conjunto de individuos.
+

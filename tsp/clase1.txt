@@ -1,0 +1,2 @@
+-lenguaje ampl, minizinc para programacion de restricciones
+-distancia manhattan se usa para calcular la distancia entre dos puntos en un plano en aplicaciones de geometria computacional

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-n = 50
+n = 5
 np.random.seed(0)
 cities = np.random.uniform(0, 10, [n, 2]) 
 
@@ -29,13 +29,18 @@ ro = 0.5 # Evaporation rate
 delta = ro #factor de refuerzo
 
 maxIter = 1
-n_ants = 1
+n_ants = 10
 alpha = 1
 beta = 1
 
+best_path = []
+best_path_length = np.inf
+
 for iter in range(maxIter):
     path=[]
+    paths = []
     path_length = []
+    paths_length = []
     for ant in range(n_ants):
         #setting S set unvisited cities
         S = np.zeros(n)  #n number of cities
@@ -58,15 +63,28 @@ for iter in range(maxIter):
             path.append(next_city)
             path_length += d[current_city, next_city]
             print(f'Path: {path}')
-            print(f'Path length: {path_length/10}')
+            print(f'Path length: {path_length}')
             #update
             current_city = next_city
             S[current_city] = True
-        path.append(path[0])
         path_length += d[current_city, path[0]]
-        print(f'Path: {path}')
-        print(f'Path length: {path_length/10}')
-        
+        paths.append(path)
+        paths_length.append(path_length)
+
+        if path_length < best_path_length:
+            best_path = path
+            best_path_length = path_length
+
+        #updating pheromones
+        To *= (1-ro)
+        for path, path_length in zip(paths, paths_length):
+            # print(f'Path: {path}', f'Path length: {path_length}')
+            for i in range(n-1):
+                To[path[i], path[i+1]] += delta/path_length
+            To[path[-1], path[0]] += delta/path_length
+        print(f'Pheromones: {To}')
+    
+
 #graficar puntos en el plot
 plt.scatter(cities[:,0], cities[:,1], c='red', alpha=0.5)
 for i, city in enumerate(cities):

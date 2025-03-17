@@ -60,8 +60,13 @@ def knapsack_instances(n, w_range, b_range, alpha):
 # initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
 # ---------------------------
 
+# Parámetros del algoritmo evolutivo
+crossover_rate = 0.9   # Porcentaje de cruzamiento (90%)
+mutation_rate  = 0.1   # Tasa de mutación (10%)
+population_size = 100  # Tamaño de la población
+
 # Generación de instancia mediante la función 'knapsack_instances'
-# Parámetros de ejemplo: 10 ítems, pesos entre 1 y 20, beneficios entre 10 y 100,
+# Ejemplo: 100 ítems, pesos entre 1 y 20, beneficios entre 10 y 100,
 # y capacidad igual al 70% de la suma total de los pesos.
 instance = knapsack_instances(n=100, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
 benefit_values = instance['benefit_values']
@@ -71,7 +76,6 @@ capacity = instance['capacity']
 
 # Inicialización de la población
 np.random.seed(0)  # Fijamos la semilla para reproducibilidad
-population_size = 20
 population = np.random.randint(0, 2, [population_size, num_items])
 
 population_benefits = np.dot(benefit_values, population.T)
@@ -108,12 +112,15 @@ for generation in range(max_generations):
     parent1 = population[parent1_index]
     parent2 = population[parent2_index]
     
-    # Cruce: se genera un hijo usando uniform crossover
-    child = uniform_crossover(parent1, parent2, num_items)
+    # Cruzamiento: se genera un hijo usando uniform crossover según la probabilidad definida
+    if np.random.rand() <= crossover_rate:
+        child = uniform_crossover(parent1, parent2, num_items)
+    else:
+        # Si no ocurre cruzamiento, se copia uno de los padres (en este caso, el primero)
+        child = np.copy(parent1)
     
-    # Mutación: con probabilidad de 10%
-    mutation_probability = 0.1
-    if np.random.rand() <= mutation_probability:
+    # Mutación: con probabilidad definida
+    if np.random.rand() <= mutation_rate:
         mutation_index = np.random.randint(0, num_items)
         child[mutation_index] = 0 if child[mutation_index] == 1 else 1
     

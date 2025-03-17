@@ -27,15 +27,47 @@ def uniform_crossover(parent1, parent2, num_items):
     child_solution[indices_from_parent2] = parent2[indices_from_parent2]
     return child_solution
 
-# Datos del problema
-benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
-weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
-num_items = 10
-capacity = 220
-initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
+def knapsack_instances(n, w_range, b_range, alpha):
+    """
+    Genera una instancia del problema de la mochila.
+    
+    Parámetros:
+    - n (int): Número de ítems.
+    - w_range (tuple): Rango para los pesos, por ejemplo (1, 20) para pesos enteros uniformemente distribuidos.
+    - b_range (tuple): Rango para los beneficios, por ejemplo (10, 100) para beneficios enteros uniformemente distribuidos.
+    - alpha (float): Factor para definir la capacidad de la mochila relativo a la suma de los pesos.
+    
+    Retorna:
+    - instance (dict): Diccionario con las claves 'benefit_values', 'weight_values', 'num_items' y 'capacity'.
+    """
+    weights = np.random.randint(w_range[0], w_range[1] + 1, n)
+    benefits = np.random.randint(b_range[0], b_range[1] + 1, n)
+    capacity = int(alpha * np.sum(weights))
+    instance = {
+        'benefit_values': benefits,
+        'weight_values': weights,
+        'num_items': n,
+        'capacity': capacity
+    }
+    return instance
 
-initial_benefit = np.dot(benefit_values, initial_solution)
-initial_weight = np.dot(weight_values, initial_solution)
+# ---------------------------
+# Instancias "quemadas" por defecto (comentadas)
+# benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
+# weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
+# num_items = 10
+# capacity = 220
+# initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
+# ---------------------------
+
+# Generación de instancia mediante la función 'knapsack_instances'
+# Parámetros de ejemplo: 10 ítems, pesos entre 1 y 20, beneficios entre 10 y 100,
+# y capacidad igual al 70% de la suma total de los pesos.
+instance = knapsack_instances(n=100, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
+benefit_values = instance['benefit_values']
+weight_values = instance['weight_values']
+num_items = instance['num_items']
+capacity = instance['capacity']
 
 # Inicialización de la población
 np.random.seed(0)  # Fijamos la semilla para reproducibilidad

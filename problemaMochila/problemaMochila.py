@@ -53,32 +53,32 @@ def knapsack_instances(n, w_range, b_range, alpha):
 
 # ---------------------------
 # Instancias "quemadas" por defecto (comentadas)
-benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
-weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
-num_items = 10
-capacity = 220
-initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
+# benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
+# weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
+# num_items = 10
+# capacity = 220
+# initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
 # ---------------------------
 
 # Generación de instancia mediante la función 'knapsack_instances'
 # Ejemplo: 100 ítems, pesos entre 1 y 20, beneficios entre 10 y 100,
 # y capacidad igual al 70% de la suma total de los pesos.
-# instance = knapsack_instances(n=10, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
-# benefit_values = instance['benefit_values']
-# weight_values  = instance['weight_values']
-# num_items      = instance['num_items']
-# capacity       = instance['capacity']
+instance = knapsack_instances(n=100, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
+benefit_values = instance['benefit_values']
+weight_values  = instance['weight_values']
+num_items      = instance['num_items']
+capacity       = instance['capacity']
 
 # Parámetros del algoritmo evolutivo
 crossover_rate    = 0.9    # Porcentaje de cruzamiento (90%)
 mutation_rate     = 0.1    # Tasa de mutación (10%)
 population_size   = 20    # Tamaño de la población
-selection_method  = "tournament"  # Puede ser "tournament" o "roulette"
-penalty_method    = "repair"   # Puede ser "repair" o "penalty"
+selection_method  = "roulette"  # Puede ser "tournament" o "roulette"
+penalty_method    = "penalty"   # Puede ser "repair" o "penalty"
 penalty_factor    = 2.0         # Factor de penalización (se descuenta penalty_factor * exceso de peso)
 
 # Inicialización de la población
-np.random.seed(0)  # Fijamos la semilla para reproducibilidad
+np.random.seed(0)
 population = np.random.randint(0, 2, [population_size, num_items])
 raw_benefits = np.dot(benefit_values, population.T)
 raw_weights  = np.dot(weight_values, population.T)

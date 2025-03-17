@@ -1,6 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def knapsack_instances(n, w_range, b_range, alpha):
+    """
+    Generates an instance of the knapsack problem.
+    Parameters:
+    - n (int): Number of items.
+    - w_range: U [1,20]
+    - b_range : U [10,100]
+    - alpha : factor to define the knapsack capacity relative to the sum of item weights.
+    """
+    w = np.random.randint(w_range[0], w_range[1] + 1, n)
+    b = np.random.randint(b_range[0], b_range[1] + 1, n)
+    C = alpha * np.sum(w)
+    return w, b, int(C)
+
 def repair(x, b, p, C, m):
     pi = np.dot(p, x)
     while pi > C:
@@ -35,10 +49,10 @@ def roulette_selection_normalized(fos, N):
     selected_indices = np.random.choice(N, size=N, p=probabilities)
     return selected_indices
 
-b = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
-p = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
+# Generar instancia del problema
 m = 10
-C = 220
+w, b, C = knapsack_instances(m, (1, 20), (10, 100), 0.5)
+
 N = 20
 crossover_rate = 0.8
 mutation_rate = 0.1
@@ -47,11 +61,11 @@ np.random.seed(0)
 pop = np.random.randint(0, 2, [N, m])
 
 fos = np.dot(b, np.transpose(pop))
-ps = np.dot(p, np.transpose(pop))
+ps = np.dot(w, np.transpose(pop))
 
 for i in range(N):
     if ps[i] > C:
-        pop[i, :], ps[i], fos[i] = repair(pop[i, :], b, p, C, m)
+        pop[i, :], ps[i], fos[i] = repair(pop[i, :], b, w, C, m)
 
 incertidumbre = np.argmax(fos)
 
@@ -87,8 +101,8 @@ for gen in range(maxGen):
             pos = np.random.randint(0, m)
             hijo2[pos] = 1 - hijo2[pos]
         
-        hijo1, ph1, foh1 = repair(hijo1, b, p, C, m)
-        hijo2, ph2, foh2 = repair(hijo2, b, p, C, m)
+        hijo1, ph1, foh1 = repair(hijo1, b, w, C, m)
+        hijo2, ph2, foh2 = repair(hijo2, b, w, C, m)
         
         new_pop.extend([hijo1, hijo2])
         new_fos.extend([foh1, foh2])

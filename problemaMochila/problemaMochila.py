@@ -1,101 +1,109 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def repair(x, b, p, C, m):
-  pi = np.dot(p, x)
-  while pi > C:
-      pos = np.random.randint(0, m)
-      x[pos] = 0
-      pi = np.dot(p, x)
-  foi = np.dot(b, x)
-  return x, pi, foi
+def repair_solution(solution, benefit_values, weight_values, capacity, num_items):
+    """
+    Repara una solución del problema de la mochila, eliminando ítems de forma aleatoria
+    hasta que el peso total no exceda la capacidad.
+    """
+    total_weight = np.dot(weight_values, solution)
+    while total_weight > capacity:
+        random_index = np.random.randint(0, num_items)
+        solution[random_index] = 0
+        total_weight = np.dot(weight_values, solution)
+    total_benefit = np.dot(benefit_values, solution)
+    return solution, total_weight, total_benefit
 
-def upx(p1, p2, m):
-  mask = np.random.randint(0, 2, m)
-  m1 = mask == 1
-  m0 = mask == 0
-  h1 = np.zeros(m, dtype=int)
-  h1[m1] = p1[m1]
-  h1[m0] = p2[m0]
-  return h1
+def uniform_crossover(parent1, parent2, num_items):
+    """
+    Realiza un cruce uniforme entre dos padres generando un hijo.
+    Cada gen se selecciona de forma aleatoria del primer o segundo padre.
+    """
+    crossover_mask = np.random.randint(0, 2, num_items)
+    indices_from_parent1 = crossover_mask == 1
+    indices_from_parent2 = crossover_mask == 0
+    child_solution = np.zeros(num_items, dtype=int)
+    child_solution[indices_from_parent1] = parent1[indices_from_parent1]
+    child_solution[indices_from_parent2] = parent2[indices_from_parent2]
+    return child_solution
 
 # Datos del problema
-b = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
-p = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
-m = 10
-C = 220
-x1 = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
+benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
+weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
+num_items = 10
+capacity = 220
+initial_solution = np.array([1, 1, 1, 0, 0, 0, 1, 1, 1, 0])
 
-fx1 = np.dot(b, x1)
-px1 = np.dot(p, x1)
+initial_benefit = np.dot(benefit_values, initial_solution)
+initial_weight = np.dot(weight_values, initial_solution)
 
 # Inicialización de la población
-np.random.seed(0)  # Fijamos la semilla solo una vez
-N = 20
-pop = np.random.randint(0, 2, [N, m])
+np.random.seed(0)  # Fijamos la semilla para reproducibilidad
+population_size = 20
+population = np.random.randint(0, 2, [population_size, num_items])
 
-fos = np.dot(b, pop.T)
-ps = np.dot(p, pop.T)
+population_benefits = np.dot(benefit_values, population.T)
+population_weights = np.dot(weight_values, population.T)
 
 # Reparación de individuos infactibles
-for i in range(N):
-  if ps[i] > C:
-    pop[i, :], ps[i], fos[i] = repair(pop[i, :], b, p, C, m)
+for i in range(population_size):
+    if population_weights[i] > capacity:
+        population[i, :], population_weights[i], population_benefits[i] = repair_solution(
+            population[i, :], benefit_values, weight_values, capacity, num_items)
 
 # Incumbente inicial (mejor individuo)
-incumbente = np.argmax(fos)
+best_index = np.argmax(population_benefits)
 
-# Selección de padres (por torneo)
-maxGen = 1000
-plt.scatter(0, fos[incumbente], c='blue')
+# Selección de padres (por torneo) y evolución
+max_generations = 1000
+plt.scatter(0, population_benefits[best_index], c='blue')
 
-for gen in range(maxGen):
-  idxcandidatos = np.random.choice(N, 4, replace=False)
-  
-  # Torneo para el primer padre
-  if fos[idxcandidatos[0]] > fos[idxcandidatos[1]]:
-    idxp1 = idxcandidatos[0]
-  else:
-    idxp1 = idxcandidatos[1]
-  
-  # Torneo para el segundo padre
-  if fos[idxcandidatos[2]] > fos[idxcandidatos[3]]:
-    idxp2 = idxcandidatos[2]
-  else:
-    idxp2 = idxcandidatos[3]
-  
-  padre1 = pop[idxp1]
-  padre2 = pop[idxp2]
-  
-  # Cruce: se genera un hijo usando uniform crossover
-  hijo1 = upx(padre1, padre2, m)
-  print('hijo1 inicial:', hijo1, 'fo:', np.dot(b, hijo1), 'p:', np.dot(p, hijo1))
-  
-  # Mutación: probabilidad de mutar (por ejemplo, 0.1 o 10%)
-  tm = 0.1
-  if np.random.rand() <= tm:
-    pos = np.random.randint(0, m)
-    hijo1[pos] = 0 if hijo1[pos] == 1 else 1
-  
-  # Reparar la nueva solución
-  hijo1, ph1, foh1 = repair(hijo1, b, p, C, m)
-  foh1 = np.dot(b, hijo1)
-  ph1 = np.dot(p, hijo1)
-  print('hijo1 reparado:', hijo1, 'foh1:', foh1, 'ph1:', ph1)
-  
-  # Reemplazar el peor de la población si el hijo es mejor
-  idxPeor = np.argmin(fos)
-  if foh1 > fos[idxPeor]:
-    fos[idxPeor] = foh1
-    ps[idxPeor] = ph1
-    pop[idxPeor, :] = hijo1
-  
-  # Actualizar el mejor individuo (incumbente) si se encuentra uno mejor
-  idxincum = np.argmax(fos)
-  if fos[idxincum] > fos[incumbente]:
-    incumbente = idxincum
-    plt.scatter(gen, fos[idxincum], c='red')
+for generation in range(max_generations):
+    candidate_indices = np.random.choice(population_size, 4, replace=False)
+    
+    # Torneo para el primer padre
+    if population_benefits[candidate_indices[0]] > population_benefits[candidate_indices[1]]:
+        parent1_index = candidate_indices[0]
+    else:
+        parent1_index = candidate_indices[1]
+    
+    # Torneo para el segundo padre
+    if population_benefits[candidate_indices[2]] > population_benefits[candidate_indices[3]]:
+        parent2_index = candidate_indices[2]
+    else:
+        parent2_index = candidate_indices[3]
+    
+    parent1 = population[parent1_index]
+    parent2 = population[parent2_index]
+    
+    # Cruce: se genera un hijo usando uniform crossover
+    child = uniform_crossover(parent1, parent2, num_items)
+    
+    # Mutación: con probabilidad de 10%
+    mutation_probability = 0.1
+    if np.random.rand() <= mutation_probability:
+        mutation_index = np.random.randint(0, num_items)
+        child[mutation_index] = 0 if child[mutation_index] == 1 else 1
+    
+    # Reparar la nueva solución
+    child, child_weight, child_benefit = repair_solution(child, benefit_values, weight_values, capacity, num_items)
+    # Re-cálculo (por si acaso)
+    child_benefit = np.dot(benefit_values, child)
+    child_weight = np.dot(weight_values, child)
+    
+    # Reemplazar el peor individuo de la población si el hijo es mejor
+    worst_index = np.argmin(population_benefits)
+    if child_benefit > population_benefits[worst_index]:
+        population_benefits[worst_index] = child_benefit
+        population_weights[worst_index] = child_weight
+        population[worst_index, :] = child
+    
+    # Actualizar el mejor individuo (incumbente) si se encuentra uno mejor
+    current_best_index = np.argmax(population_benefits)
+    if population_benefits[current_best_index] > population_benefits[best_index]:
+        best_index = current_best_index
+        plt.scatter(generation, population_benefits[current_best_index], c='red')
 
 plt.grid()
 plt.show()
-print('Mejor solución:', pop[incumbente], 'fo:', fos[incumbente], 'p:', ps[incumbente])
+print('Mejor solución:', population[best_index], 'Beneficio:', population_benefits[best_index], 'Peso:', population_weights[best_index])

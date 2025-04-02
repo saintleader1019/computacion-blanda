@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 def repair_solution(solution, benefit_values, weight_values, capacity, num_items):
     """
@@ -40,6 +41,7 @@ def knapsack_instances(n, w_range, b_range, alpha):
     Retorna:
     - instance (dict): Diccionario con las claves 'benefit_values', 'weight_values', 'num_items' y 'capacity'.
     """
+    np.random.seed(0)
     weights = np.random.randint(w_range[0], w_range[1] + 1, n)
     benefits = np.random.randint(b_range[0], b_range[1] + 1, n)
     capacity = int(alpha * np.sum(weights))
@@ -52,7 +54,7 @@ def knapsack_instances(n, w_range, b_range, alpha):
     return instance
 
 # ---------------------------
-# Instancias "quemadas" por defecto (comentadas)
+# Instancias "quemadas" por defecto
 # benefit_values = np.array([51, 36, 83, 65, 88, 54, 26, 36, 36, 40])
 # weight_values = np.array([30, 38, 54, 21, 32, 33, 68, 30, 32, 38])
 # num_items = 10
@@ -63,7 +65,7 @@ def knapsack_instances(n, w_range, b_range, alpha):
 # Generación de instancia mediante la función 'knapsack_instances'
 # Ejemplo: 100 ítems, pesos entre 1 y 20, beneficios entre 10 y 100,
 # y capacidad igual al 70% de la suma total de los pesos.
-instance = knapsack_instances(n=100, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
+instance = knapsack_instances(n=1000, w_range=(1, 20), b_range=(10, 100), alpha=0.7)
 benefit_values = instance['benefit_values']
 weight_values  = instance['weight_values']
 num_items      = instance['num_items']
@@ -74,40 +76,41 @@ crossover_rate    = 0.9    # Porcentaje de cruzamiento (90%)
 mutation_rate     = 0.1    # Tasa de mutación (10%)
 population_size   = 20    # Tamaño de la población
 selection_method  = "roulette"  # Puede ser "tournament" o "roulette"
-penalty_method    = "penalty"   # Puede ser "repair" o "penalty"
+penalty_method    = "repair"   # Puede ser "repair" o "penalty"
 penalty_factor    = 2.0         # Factor de penalización (se descuenta penalty_factor * exceso de peso)
 
 # Inicialización de la población
+start_time = time.time()
 np.random.seed(0)
 population = np.random.randint(0, 2, [population_size, num_items])
 raw_benefits = np.dot(benefit_values, population.T)
 raw_weights  = np.dot(weight_values, population.T)
 
 # Cálculo de la aptitud efectiva (fitness) según el método elegido
-effective_fitness = np.zeros(population_size)
+fitness = np.zeros(population_size)
 
 if penalty_method == "repair":
     # Se reparan los individuos infactibles
     for i in range(population_size):
         if raw_weights[i] > capacity:
             population[i, :], raw_weights[i], raw_benefits[i] = repair_solution( population[i, :], benefit_values, weight_values, capacity, num_items)
-    effective_fitness = raw_benefits.copy()  # Todas son factibles
+    fitness = raw_benefits.copy()  # Todas son factibles
 elif penalty_method == "penalty":
     # Se calcula la aptitud penalizada sin reparar
     for i in range(population_size):
         if raw_weights[i] > capacity:
-            effective_fitness[i] = raw_benefits[i] - penalty_factor * (raw_weights[i] - capacity)
+            fitness[i] = raw_benefits[i] - penalty_factor * (raw_weights[i] - capacity)
         else:
-            effective_fitness[i] = raw_benefits[i]
+            fitness[i] = raw_benefits[i]
 else:
     raise ValueError("penalty_method debe ser 'repair' o 'penalty'.")
 
 # Incumbente inicial (mejor individuo) según la aptitud efectiva
-best_index = np.argmax(effective_fitness)
+best_index = np.argmax(fitness)
 
 # Evolución
 max_generations = 1000
-plt.scatter(0, effective_fitness[best_index], c='blue')
+plt.scatter(0, fitness[best_index], c='blue')
 
 for generation in range(max_generations):
     
@@ -115,21 +118,21 @@ for generation in range(max_generations):
     if selection_method == "tournament":
         candidate_indices = np.random.choice(population_size, 4, replace=False)
         # Torneo para el primer padre
-        if effective_fitness[candidate_indices[0]] > effective_fitness[candidate_indices[1]]:
+        if fitness[candidate_indices[0]] > fitness[candidate_indices[1]]:
             parent1_index = candidate_indices[0]
         else:
             parent1_index = candidate_indices[1]
         # Torneo para el segundo padre
-        if effective_fitness[candidate_indices[2]] > effective_fitness[candidate_indices[3]]:
+        if fitness[candidate_indices[2]] > fitness[candidate_indices[3]]:
             parent2_index = candidate_indices[2]
         else:
             parent2_index = candidate_indices[3]
     elif selection_method == "roulette":
-        total_fit = np.sum(effective_fitness)
+        total_fit = np.sum(fitness)
         if total_fit == 0:
             probabilities = np.ones(population_size) / population_size
         else:
-            probabilities = effective_fitness / total_fit
+            probabilities = fitness / total_fit
         parent1_index = np.random.choice(np.arange(population_size), p=probabilities)
         parent2_index = np.random.choice(np.arange(population_size), p=probabilities)
     else:
@@ -162,26 +165,28 @@ for generation in range(max_generations):
             child_effective_fitness = child_benefit
 
     # Reemplazar el peor individuo de la población si el hijo es mejor (según aptitud efectiva)
-    worst_index = np.argmin(effective_fitness)
-    if child_effective_fitness > effective_fitness[worst_index]:
+    worst_index = np.argmin(fitness)
+    if child_effective_fitness > fitness[worst_index]:
         population[worst_index, :] = child
         raw_benefits[worst_index] = child_benefit
         raw_weights[worst_index] = child_weight
-        effective_fitness[worst_index] = child_effective_fitness
+        fitness[worst_index] = child_effective_fitness
     
     # Actualizar el mejor individuo (incumbente) si se encuentra uno mejor
-    current_best_index = np.argmax(effective_fitness)
-    if effective_fitness[current_best_index] > effective_fitness[best_index]:
+    current_best_index = np.argmax(fitness)
+    if fitness[current_best_index] > fitness[best_index]:
         best_index = current_best_index
-        plt.scatter(generation, effective_fitness[current_best_index], c='red')
+        plt.scatter(generation, fitness[current_best_index], c='red')
+end_time = time.time() - start_time
 
-plt.title("Evolución de la Aptitud Efectiva")
+plt.title("Evolución de la función objetivo")
 plt.xlabel("Generación")
-plt.ylabel("Aptitud Efectiva")
+plt.ylabel("funcion objetivo")
 plt.grid()
 plt.show()
 
-print('Mejor solución:', population[best_index],
-      'Beneficio:', raw_benefits[best_index],
-      'Peso:', raw_weights[best_index],
-      'Aptitud efectiva:', effective_fitness[best_index])
+print('Instancia:', selection_method, '-', penalty_method, 
+      '\nMejor solución:\n', population[best_index],
+      '\nBeneficio:', raw_benefits[best_index],
+      '\nPeso:', raw_weights[best_index],
+      '\nTiempo: ', end_time)

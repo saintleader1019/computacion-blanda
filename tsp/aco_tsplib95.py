@@ -84,3 +84,5 @@ path, length, t = run_aco(coords, d, n_ants=20, alpha=1.5, beta=2.0, ro=0.3, ite
 print(f"Best path length: {length:.2f}")
 print(f"Execution time: {t:.2f} s")
 plot_solution(coords, path)
+
+#la mala pa daniel

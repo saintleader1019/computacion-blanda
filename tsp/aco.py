@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-n = 10
+n = 100
 np.random.seed(0)
 cities = np.random.uniform(0, 10, [n, 3]) 
 

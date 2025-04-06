@@ -1,8 +1,16 @@
+import os
 import tsplib95
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import random
+import pandas as pd
+from itertools import product
+from tqdm import tqdm
+from multiprocessing import Pool
+import re
 
+# === Cargar instancia y matriz de distancias ===
 def load_tsplib_instance(path):
     problem = tsplib95.load(path)
     nodes = list(problem.get_nodes())
@@ -18,6 +26,7 @@ def load_tsplib_instance(path):
                 d[i, j] = np.inf
     return coords, d, problem
 
+# === Algoritmo de colonia de hormigas ===
 def run_aco(coords, d, n_ants=10, alpha=1, beta=1, ro=0.5, iterations=1):
     n = len(coords)
     nij = 1 / d
@@ -42,9 +51,18 @@ def run_aco(coords, d, n_ants=10, alpha=1, beta=1, ro=0.5, iterations=1):
                 unvisited = np.where(S == False)[0]
                 pij = np.zeros(len(unvisited))
                 for j, next_city in enumerate(unvisited):
-                    pij[j] = (To[current_city, next_city]**alpha) * (nij[current_city, next_city]**beta)
-                pij /= pij.sum()
-                next_city = np.random.choice(unvisited, p=pij)
+                    try:
+                        pij[j] = (To[current_city, next_city]**alpha) * (nij[current_city, next_city]**beta)
+                    except:
+                        pij[j] = 0
+
+                total = pij.sum()
+                if total == 0 or np.isnan(total):
+                    next_city = np.random.choice(unvisited)  # fallback aleatorio
+                else:
+                    pij /= total
+                    next_city = np.random.choice(unvisited, p=pij)
+
                 path.append(next_city)
                 path_length += d[current_city, next_city]
                 current_city = next_city
@@ -68,21 +86,78 @@ def run_aco(coords, d, n_ants=10, alpha=1, beta=1, ro=0.5, iterations=1):
     elapsed_time = time.time() - start_time
     return best_path, best_path_length, elapsed_time
 
-def plot_solution(coords, path, title="Best Path"):
-    path = path + [path[0]]  # volver al inicio
-    plt.figure()
-    plt.scatter(coords[:, 0], coords[:, 1], c='red', alpha=0.5)
-    for i, city in enumerate(coords):
-        plt.text(city[0], city[1], str(i), fontsize=9)
-    plt.plot(coords[path, 0], coords[path, 1], c='blue')
-    plt.title(title)
-    plt.grid()
-    plt.show()
+# === Leer soluciones óptimas desde solutions ===
+def cargar_optimos_desde_txt(path_txt):
+    optimos = {}
+    with open(path_txt, "r") as f:
+        for line in f:
+            if ":" in line:
+                nombre, valor = line.strip().split(":")
+                nombre = nombre.strip()
+                valor = valor.strip()
+                valor_num = re.findall(r"[\d.]+", valor)
+                if valor_num:
+                    optimos[nombre] = float(valor_num[0])
+    return optimos
 
-coords, d, problem = load_tsplib_instance("ulysses22.tsp")
-path, length, t = run_aco(coords, d, n_ants=20, alpha=1.5, beta=2.0, ro=0.3, iterations=200)
-print(f"Best path length: {length:.2f}")
-print(f"Execution time: {t:.2f} s")
-plot_solution(coords, path)
+# === Ejecutar instancia con ACO y calcular GAP ===
+def run_grid_search(args):
+    path_tsp, archivo_tsp, optimos_dict = args
+    coords, d, problem = load_tsplib_instance(os.path.join(path_tsp, archivo_tsp))
+    nombre = os.path.splitext(archivo_tsp)[0]
+    optimo = optimos_dict.get(nombre, None)
 
-#la mala pa daniel
+    # Rango de parámetros
+    n_ants_vals = [10, 20, 30]
+    alpha_vals = [0.5, 1.0, 1.5]
+    beta_vals  = [1.0, 2.0]
+    ro_vals    = [0.1, 0.3, 0.5]
+    iterations = 1000
+
+    resultados = []
+
+    # Generar combinaciones de parámetros
+    combinaciones = list(product(n_ants_vals, alpha_vals, beta_vals, ro_vals))
+
+    for n_ants, alpha, beta, ro in tqdm(combinaciones, desc=f"Grid search en {archivo_tsp}"):
+        path, length, tiempo = run_aco(coords, d, n_ants=n_ants, alpha=alpha, beta=beta, ro=ro, iterations=iterations)
+        gap = None
+        if optimo:
+            gap = ((length - optimo) / optimo) * 100
+
+        resultados.append({
+            "archivo": archivo_tsp,
+            "dimension": problem.dimension,
+            "mejor_distancia": round(length, 3),
+            "optimo": optimo,
+            "gap_%": round(gap, 2) if gap is not None else None,
+            "tiempo_segundos": round(tiempo, 3),
+            "n_ants": n_ants,
+            "alpha": alpha,
+            "beta": beta,
+            "ro": ro,
+            "iterations": iterations
+        })
+
+    df = pd.DataFrame(resultados)
+    output_csv = f"gridsearch_{nombre}.csv"
+    df.to_csv(output_csv, index=False)
+    print(f"\n✅ Grid search completado para {archivo_tsp}. Resultados guardados en {output_csv}")
+
+# === Main ===
+if __name__ == "__main__":
+    path_tsp = "C:/Users/santi/OneDrive/Documentos/GitHub/computacion-blanda/acoEntregaII/tsplib-master"
+    ruta_solutions_txt = "C:/Users/santi/OneDrive/Documentos/GitHub/computacion-blanda/acoEntregaII/tsplib-master/solutions"
+    optimos_dict = cargar_optimos_desde_txt(ruta_solutions_txt)
+
+    # Lista de 9 instancias seleccionadas
+    instancias = [
+        "burma14.tsp", "ulysses16.tsp", "ulysses22.tsp",
+        "berlin52.tsp", "st70.tsp", "kroA100.tsp",
+        "ch150.tsp", "tsp225.tsp", "pr439.tsp"
+    ]
+
+    args_list = [(path_tsp, archivo, optimos_dict) for archivo in instancias]
+
+    with Pool(processes=min(9, os.cpu_count())) as pool:
+        pool.map(run_grid_search, args_list)

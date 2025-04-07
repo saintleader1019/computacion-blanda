@@ -86,7 +86,7 @@ def run_aco(coords, d, n_ants=10, alpha=1, beta=1, ro=0.5, iterations=1):
     elapsed_time = time.time() - start_time
     return best_path, best_path_length, elapsed_time
 
-# === Leer soluciones óptimas desde solutions ===
+# === Leer soluciones óptimas desde archivo de texto (formato flexible) ===
 def cargar_optimos_desde_txt(path_txt):
     optimos = {}
     with open(path_txt, "r") as f:
@@ -115,8 +115,6 @@ def run_grid_search(args):
     iterations = 1000
 
     resultados = []
-
-    # Generar combinaciones de parámetros
     combinaciones = list(product(n_ants_vals, alpha_vals, beta_vals, ro_vals))
 
     for n_ants, alpha, beta, ro in tqdm(combinaciones, desc=f"Grid search en {archivo_tsp}"):
@@ -144,6 +142,28 @@ def run_grid_search(args):
     df.to_csv(output_csv, index=False)
     print(f"\n✅ Grid search completado para {archivo_tsp}. Resultados guardados en {output_csv}")
 
+# === Gráficos por instancia ===
+def graficar_resultados_por_instancia(path_csv):
+    df = pd.read_csv(path_csv)
+    nombre = os.path.splitext(os.path.basename(path_csv))[0].replace("gridsearch_", "")
+
+    # Ordenar por mejor distancia y mostrar top 5
+    print(f"\n🏆 Top 5 configuraciones para {nombre} ordenadas por mejor_distancia:")
+    print(df.sort_values("mejor_distancia").head(5))
+
+    # Gráficos GAP vs cada parámetro
+    parametros = ["n_ants", "alpha", "beta", "ro"]
+    for param in parametros:
+        plt.figure()
+        df.groupby(param)["gap_%"].mean().plot(marker='o')
+        plt.title(f"{nombre} - GAP promedio vs {param}")
+        plt.xlabel(param)
+        plt.ylabel("GAP (%)")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(f"grafico_gap_vs_{param}_{nombre}.png")
+        plt.close()
+
 # === Main ===
 if __name__ == "__main__":
     path_tsp = "C:/Users/santi/OneDrive/Documentos/GitHub/computacion-blanda/acoEntregaII/tsplib-master"
@@ -159,5 +179,12 @@ if __name__ == "__main__":
 
     args_list = [(path_tsp, archivo, optimos_dict) for archivo in instancias]
 
-    with Pool(processes=min(9, os.cpu_count())) as pool:
-        pool.map(run_grid_search, args_list)
+    # === Para ejecutar el grid (opcional una vez completado) ===
+    # with Pool(processes=min(9, os.cpu_count())) as pool:
+    #     pool.map(run_grid_search, args_list)
+
+    # === Generar gráficos por instancia ===
+    for archivo in instancias:
+        csv_path = f"gridsearch_{os.path.splitext(archivo)[0]}.csv"
+        if os.path.exists(csv_path):
+            graficar_resultados_por_instancia(csv_path)

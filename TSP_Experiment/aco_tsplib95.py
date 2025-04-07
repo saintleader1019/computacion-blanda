@@ -164,7 +164,5 @@ def main():
         graficar(csv)
         generar_reporte(csv)
 
-    generar_readme()
-
 if __name__ == "__main__":
     main()

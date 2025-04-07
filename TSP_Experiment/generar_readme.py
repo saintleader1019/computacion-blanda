@@ -1,10 +1,21 @@
 import os
 import pandas as pd
+import markdown
+import pdfkit
+from datetime import datetime
 
 BASE_DIR = "TSP_Experiment"
 CSV_DIR = os.path.join(BASE_DIR, "csv")
 IMG_DIR = os.path.join(BASE_DIR, "png")
+EXPORT_DIR = os.path.join(BASE_DIR, "export")
 README_PATH = os.path.join(BASE_DIR, "README.md")
+README_PDF_PATH = os.path.join(BASE_DIR, "README.pdf")
+
+os.makedirs(EXPORT_DIR, exist_ok=True)
+
+# Ruta manual al ejecutable wkhtmltopdf (ajusta si es necesario)
+WKHTMLTOPDF_PATH = 'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
 
 def resumen_csv(csv_path):
     df = pd.read_csv(csv_path)
@@ -76,10 +87,46 @@ def generar_readme():
             for param in ["n_ants", "alpha", "beta", "ro"]:
                 grafico_path = f"grafico_gap_vs_{param}_{nombre}.png"
                 if os.path.exists(os.path.join(IMG_DIR, grafico_path)):
-                    contenido.append(f"\n![GAP vs {param} - {nombre}](./png/{grafico_path})\n")
+                    contenido.append(f"\n![GAP vs {param} - {nombre}](TSP_Experiment\png/{grafico_path})\n")
 
     with open(README_PATH, "w", encoding="utf-8") as f:
         f.write("\n".join(contenido))
+
+    # Convertir a PDF con HTML completo y UTF-8
+    try:
+        print("\n🖨️ Generando PDF desde README.md...")
+        html_body = markdown.markdown("\n".join(contenido), extensions=['extra'])
+        html = f"""
+        <!DOCTYPE html>
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Informe ACO</title>
+        </head>
+        <body>
+        {html_body}
+        </body>
+        </html>
+        """
+        with open("temp_readme.html", "w", encoding="utf-8") as html_file:
+            html_file.write(html)
+        pdfkit.from_file(
+            "temp_readme.html",
+            README_PDF_PATH,
+            configuration=config,
+            options={"enable-local-file-access": ""}
+        )
+        os.remove("temp_readme.html")
+        print(f"✅ PDF generado correctamente en: {README_PDF_PATH}")
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+        export_name = f"README_{timestamp}.pdf"
+        export_path = os.path.join(EXPORT_DIR, export_name)
+        os.replace(README_PDF_PATH, export_path)
+        print(f"📁 Copia exportada a: {export_path}")
+
+    except Exception as e:
+        print("⚠️ Error al generar PDF:", e)
 
 if __name__ == "__main__":
     generar_readme()

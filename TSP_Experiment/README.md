@@ -51,9 +51,9 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 - n_ants debe adaptarse al tamaño del problema.
 
 
-## 📌 Conclusiones y Recomendaciones por Instancia
+## 📌 Observaciones por Instancia
 
-### 🧠 BERLIN52
+### BERLIN52
 - 📉 GAP promedio general: 16.19%
 - 🥇 Mejor GAP alcanzado: 0.07% con parámetros:
   - n_ants: 20
@@ -62,7 +62,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.1
 - ⏱️ Tiempo medio de ejecución: 75.62 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `berlin52`.
 
 
 ![GAP vs n_ants - berlin52](./png/grafico_gap_vs_n_ants_berlin52.png)
@@ -76,7 +75,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - berlin52](./png/grafico_gap_vs_ro_berlin52.png)
 
-### 🧠 BURMA14
+### BURMA14
 - 📉 GAP promedio general: 0.57%
 - 🥇 Mejor GAP alcanzado: 0.00% con parámetros:
   - n_ants: 10
@@ -85,7 +84,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.1
 - ⏱️ Tiempo medio de ejecución: 18.52 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `burma14`.
 
 
 ![GAP vs n_ants - burma14](./png/grafico_gap_vs_n_ants_burma14.png)
@@ -99,7 +97,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - burma14](./png/grafico_gap_vs_ro_burma14.png)
 
-### 🧠 CH150
+### CH150
 - 📉 GAP promedio general: 31.65%
 - 🥇 Mejor GAP alcanzado: 3.29% con parámetros:
   - n_ants: 20
@@ -108,7 +106,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.1
 - ⏱️ Tiempo medio de ejecución: 280.27 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `ch150`.
 
 
 ![GAP vs n_ants - ch150](./png/grafico_gap_vs_n_ants_ch150.png)
@@ -122,7 +119,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - ch150](./png/grafico_gap_vs_ro_ch150.png)
 
-### 🧠 KROA100
+### KROA100
 - 📉 GAP promedio general: 27.60%
 - 🥇 Mejor GAP alcanzado: 6.16% con parámetros:
   - n_ants: 10
@@ -131,7 +128,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.3
 - ⏱️ Tiempo medio de ejecución: 164.17 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `kroA100`.
 
 
 ![GAP vs n_ants - kroA100](./png/grafico_gap_vs_n_ants_kroA100.png)
@@ -145,7 +141,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - kroA100](./png/grafico_gap_vs_ro_kroA100.png)
 
-### 🧠 PR439
+### PR439
 - 📉 GAP promedio general: 48.64%
 - 🥇 Mejor GAP alcanzado: 11.27% con parámetros:
   - n_ants: 20
@@ -154,7 +150,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.1
 - ⏱️ Tiempo medio de ejecución: 1710.91 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `pr439`.
 
 
 ![GAP vs n_ants - pr439](./png/grafico_gap_vs_n_ants_pr439.png)
@@ -168,7 +163,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - pr439](./png/grafico_gap_vs_ro_pr439.png)
 
-### 🧠 ST70
+### ST70
 - 📉 GAP promedio general: 21.61%
 - 🥇 Mejor GAP alcanzado: 6.07% con parámetros:
   - n_ants: 20
@@ -177,7 +172,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.3
 - ⏱️ Tiempo medio de ejecución: 108.98 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `st70`.
 
 
 ![GAP vs n_ants - st70](./png/grafico_gap_vs_n_ants_st70.png)
@@ -191,7 +185,7 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
 
 ![GAP vs ro - st70](./png/grafico_gap_vs_ro_st70.png)
 
-### 🧠 TSP225
+### TSP225
 - 📉 GAP promedio general: 40.09%
 - 🥇 Mejor GAP alcanzado: 8.45% con parámetros:
   - n_ants: 20
@@ -200,7 +194,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.3
 - ⏱️ Tiempo medio de ejecución: 492.28 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `tsp225`.
 
 
 ![GAP vs n_ants - tsp225](./png/grafico_gap_vs_n_ants_tsp225.png)
@@ -223,7 +216,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.1
 - ⏱️ Tiempo medio de ejecución: 21.36 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `ulysses16`.
 
 
 ![GAP vs n_ants - ulysses16](./png/grafico_gap_vs_n_ants_ulysses16.png)
@@ -246,7 +238,6 @@ El éxito del algoritmo ACO depende de encontrar un equilibrio entre explorar nu
   - ro: 0.3
 - ⏱️ Tiempo medio de ejecución: 29.27 segundos
 
-**Recomendación:** Usar esta configuración balanceada para `ulysses22`.
 
 
 ![GAP vs n_ants - ulysses22](./png/grafico_gap_vs_n_ants_ulysses22.png)
